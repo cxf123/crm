@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsource.mapper.EmployeeMapper">
+	
+	<!-- 保存员工 -->
+	<insert id="save" parameterType="com.itsource.domain.Employee" useGeneratedKeys="true"
+		keyProperty="id" keyColumn="id">
+		insert into
+		t_employee(username,realName,password,tel,email,department_id,inputTime,state)
+		values(#{username},#{realName},#{password},#{tel},#{email},#{department.id},#{inputTime},#{state})
+	</insert>
+	
+	<!-- 保存中间表的操作:这里是批量插入; -->
+	<insert id="saveEmployeeRole" parameterType="list">
+		insert into  t_employee_role(employee_id,role_id)
+						values
+		<foreach item="item" index="index" collection="list"
+			separator="," >
+			(#{item.empId},#{item.roleId})
+		</foreach>
+	</insert>
+	
+	<!-- 根据员工id,把该员工对应的所有角色全部删除了 -->
+	<delete id="removeEmployeeRole" parameterType="long">
+		delete from t_employee_role where employee_id=#{id}
+	</delete>
+	
+	<!-- 修改员工 -->
+	<update id="update" parameterType="com.itsource.domain.Employee">
+		update t_employee set
+		username=#{username},realName=#{realName},password=#{password},tel=#{tel},
+		email=#{email},department_id=#{department.id},inputTime=#{inputTime},state=#{state}
+		where id=#{id}
+	</update>
+	<!-- 删除 -->
+ 	<delete id="remove" parameterType="long">
+ 		delete from t_employee where id=#{id}
+ 	</delete>
+
+	 
+	<select id="loadById" parameterType="long" resultType="com.itsource.domain.Employee">
+		select * from
+		t_employee where id = #{id}
+	</select>
+	<!-- 获取所有员工 -->
+	<select id="loadAll" resultType="com.itsource.domain.Employee">
+		select *
+		 from t_employee
+	</select>
+	
+	<!-- int getTotalCount(BaseQuery query); -->
+	<select id="getTotalCount" parameterType="com.itsource.query.EmployeeQuery"
+		resultType="int">
+		select count(*) from t_employee e
+		<include refid="whereSql"/>
+ 
+	</select>
+
+	<!-- List<T> getLimitDatas(BaseQuery query); -->
+	<select id="getLimitDatas" parameterType="com.itsource.query.EmployeeQuery"
+		resultMap="employeeMap">
+		SELECT
+			e.id eid,
+			e.realname erealName,
+			e.username eusername,
+			e.email,
+			e.password,
+			e.tel,
+			e.inputTime,
+			e.state,
+			d.id did,
+			d. name dname,
+			d.sn dsn
+		FROM
+			t_employee e
+		LEFT JOIN t_department d ON e.department_id = d.id
+		<include refid="whereSql"/>
+		limit #{start},#{rows}
+	</select>
+	
+	<!-- 封装查询出来的部门的参数 -->
+	<resultMap type="com.itsource.domain.Employee" id="employeeMap">
+		<!-- 封装简单参数 -->
+		<id column="eid" property="id"/>
+		<result column="erealName" property="realname"/>
+		<result column="eusername" property="username"/>
+		<result column="email" property="email"/>
+		<result column="password" property="password"/>
+		<result column="tel" property="tel"/>
+		<result column="inputTime" property="inputtime"/>
+		<result column="state" property="state"/>
+		<!-- 封装对象:部门对象等 -->
+		<association property="department" javaType="Department">
+			<!-- 封装部门的数据 -->
+			<id column="did" property="id"/>
+			<result column="dname" property="name"/>
+			<result column="dsn" property="sn"/>
+		</association>
+		<!-- 封装角色-->
+		<collection property="roles" javaType="java.util.List"
+			ofType="com.itsource.domain.Role" column="eid"
+			select="com.itsource.mapper.RoleMapper.getRolesByEmpId">
+		</collection>
+	</resultMap>
+
+	<!-- 抽取公共Sql -->
+	<sql id="whereSql">
+		<!-- 查询需要放入where标签中,所有满足条件都加and,到时mybatis自动把第一个and替换成where
+			1 注意点,不是用&&药使用and
+			2 字符串拼接 
+			    '%#{q}%'占位符
+			    '%${q}%' 可以,有Sql注入问题,不能使用
+			  	  解决方案:mysql有个拼接字符串的函数concat('a',"b","c")===abc
+			  	     concat("%",#{q},"%") 由于是函数,不是拼接字符串,可以使用占位符,解决了Sql注入问题
+			3 查询总数,查询数据都要查询条件==抽取公共Sql
+			   sql include
+		 -->
+		<where>
+			<if test="q != null and q != ''">
+			  and (e.username like concat("%",#{q},"%") or e.realName like  concat("%",#{q},"%"))
+			</if>
+			<if test="state != -2">
+			  and e.state = #{state}
+			</if>
+			<if test="deptId != null ">
+			  and e.department_id = #{deptId}
+			</if>
+		</where>
+	</sql>
+	
+	
+	<!-- void leave(Long id); -->
+	<update id="leave" parameterType="long">
+		update t_employee set state = -1 where id = #{id}
+	</update>
+	
+	<!-- 登录用的方法,通过传入用户名,返回员工对象 -->	
+	<select id="login" parameterType="string" resultType="Employee">
+		select * from t_employee where username=#{username} or email =#{username}
+	</select>
+	
+	<select id="getBackPassword" parameterType="string" resultType="Employee">
+		select * from t_employee where email=#{email} 
+	</select>
+	
+
+
+</mapper> 

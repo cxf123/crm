@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsource.mapper.DepartmentMapper">
+  <resultMap id="BaseResultMap" type="com.itsource.domain.Department">
+    <!--@mbg.generated-->
+    <!--@Table t_department-->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="sn" jdbcType="VARCHAR" property="sn" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="dirPath" jdbcType="VARCHAR" property="dirpath" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+    <association property="manager" javaType="com.itsource.domain.Employee">
+        <id property="id" column="mid"/>
+      <result property="username" column="username"/>
+    </association>
+    <association property="parent" javaType="com.itsource.domain.Department">
+      <id property="id" column="pid"/>
+      <result property="name" column="pname"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, sn, `name`, dirPath, `state`, manager_id, parent_id
+  </sql>
+  <!-- 保存部门 -->
+  <insert id="save" parameterType="com.itsource.domain.Department" useGeneratedKeys="true"
+          keyProperty="id" keyColumn="id">
+    insert into t_department (sn,name,dirpath,state,manager_id,parent_id)
+    values (#{sn},#{name},#{dirpath},#{state},#{manager.id},#{parent.id})
+  </insert>
+
+  <!-- 修改部门 -->
+  <update id="update" parameterType="com.itsource.domain.Department">
+    update t_department set sn=#{sn},name=#{name},dirpath=#{dirpath},state=#{state},
+    manager_id=#{manager.id},parent_id=#{parent.id} where id=#{id}
+  </update>
+
+  <!-- 删除部门 -->
+  <delete id="remove" parameterType="long">
+    delete from t_department  where id=#{id}
+  </delete>
+
+  <!-- 通过部门id获取部门 -->
+  <select id="loadById" parameterType="long" resultType="com.itsource.domain.Department">
+    select <include refid="Base_Column_List"/> from t_department where id=#{id}
+  </select>
+
+  <!-- 获取所有部门 -->
+  <select id="loadAll" resultType="com.itsource.domain.Department">
+		select <include refid="Base_Column_List"/> from t_department
+	</select>
+
+  <!-- 分页两条Sql:总数,数据 -->
+  <!-- int getTotalCount(BaseQuery query); parameterType="DepartmentQuery"
+      需要别名支持 -->
+  <select id="getTotalCount" parameterType="com.itsource.query.DepartmentQuery"
+          resultType="int">
+    select count(*) from t_department d
+    <include refid="whereSql"/>
+  </select>
+
+  <!-- List<T> getLimitDatas(BaseQuery query); -->
+  <select id="getLimitDatas" parameterType="com.itsource.query.DepartmentQuery"
+          resultMap="BaseResultMap">
+    SELECT
+    d.*, p.id pid,
+    p. name pname,
+    m.id mid,
+    m.username
+    FROM
+    t_department d
+    LEFT JOIN t_department p ON d.parent_id = p.id
+    LEFT JOIN t_employee m ON d.manager_id = m.id
+    <include refid="whereSql"/>
+    limit #{start},#{rows};
+  </select>
+  <select id="loadDeptTree" resultType="com.itsource.domain.Department">
+    select a.id,a.name,b.id as bid,b.name as bname from t_department a left join t_department b
+    on a.id = b.parent_id
+    where b.parent_id is null
+    order by a.id
+  </select>
+
+  <sql id="whereSql">
+    <where>
+      <!-- q关键字作用于那些字段,name和sn
+      -->
+      <if test="q != null and q!=''">
+        and (d.name like concat('%',#{q},'%') or d.sn like concat('%',#{q},'%'))
+      </if>
+      <!-- -2表示没有选择状态 -->
+      <if test="state != -2">
+        and d.state = #{state}
+      </if>
+      <!-- 上级部门 -->
+      <if test="parentId != null">
+        and d.parent_id = #{parentId}
+      </if>
+      <!-- 部门经理 -->
+      <if test="managerId != null">
+        and d.manager_id = #{managerId}
+      </if>
+    </where>
+  </sql>
+
+</mapper>

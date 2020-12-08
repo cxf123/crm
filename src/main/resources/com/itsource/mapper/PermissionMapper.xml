@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这个Mapper的主要功能就是写sql mapper:根 namespace:命令空间 (用来确定唯一) 以前这个是可以不加的,现在必需加 
+	namespace的值，规则的：映射文件XxxMapper.xml所在的包+domain类名+Mapper -->
+<mapper namespace="com.itsource.mapper.PermissionMapper">
+	<sql id="base_colm_list">
+		id,`name`,sn,`resource`,`state`,menu_id
+	</sql>
+	<insert id="save" parameterType="com.itsource.domain.Permission" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+		insert into t_permission (`name`,sn,`resource`,`state`,menu_id) values (#{name},#{sn},#{resource},#{state},#{menu.id})
+	</insert>
+	<update id="update" parameterType="com.itsource.domain.Permission">
+		update t_permission set `name`=#{name},sn=#{sn},`resource`=#{resource},`state`=#{state},menu_id=#{menu.id}
+	</update>
+	<delete id="remove" parameterType="long">
+		delete from t_permission where id=#{id}
+	</delete>
+	<select id="loadAll" resultType="com.itsource.domain.Permission">
+		select <include refid="base_colm_list"/> from t_permission
+	</select>
+	<select id="getTotalCount" parameterType="com.itsource.query.PermissionQuery" resultType="int">
+		select count(*) from t_permission p
+		<where>
+			<if test="q != null and q != ''">
+				and (p.name like concat("%",#{q},"%") or p.sn like concat("%",#{q},"%"))
+			</if>
+			<if test="menuId !=null and menuId != '' ">
+				and p.menu_id=#{menuId}
+			</if>
+		</where>
+	</select>
+	<select id="getLimitDatas" parameterType="com.itsource.query.PermissionQuery" resultMap="BaseMap">
+		SELECT a.*,m.id as mid,m.name as mname from t_permission a left join t_systemmenu m on a.menu_id = m.id
+	</select>
+	<resultMap type="com.itsource.domain.Permission" id="permissionMap">
+		<id column="id" property="id"/>
+		<result column="sn" property="sn"/>
+		<result column="name" property="name"/>
+		<result column="resource" property="resource"/>
+		<result column="state" property="state"/>
+
+		<association property="menu" javaType="com.itsource.domain.Systemmenu">
+			<id column="mid" property="id"/>
+			<result column="mname" property="name"/>
+		</association>
+	</resultMap>
+</mapper> 

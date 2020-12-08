@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这个Mapper的主要功能就是写sql mapper:根 namespace:命令空间 (用来确定唯一) 以前这个是可以不加的,现在必需加 
+	namespace的值，规则的：映射文件XxxMapper.xml所在的包+domain类名+Mapper -->
+<mapper namespace="com.itsource.mapper.RoleMapper">
+	<sql id="base_colm_list">
+		id,sn,`name`
+	</sql>
+	<sql id="base_colm_list1">
+		a.id,a.sn,a.`name`
+	</sql>
+	<insert id="save" parameterType="com.itsource.domain.Role">
+		insert into t_role (sn,`name`) values (#{sn},#{name})
+	</insert>
+	<delete id="remove" parameterType="long">
+		delete from t_role where id=#{id}
+	</delete>
+	<update id="update" parameterType="com.itsource.domain.Role">
+		update t_role set sn=#{sn},name=#{name} where id=#{id}
+	</update>
+	<select id="loadById" parameterType="long" resultType="com.itsource.domain.Role">
+		select <include refid="base_colm_list"/> from t_role where id=#{id}
+	</select>
+	<select id="loadAll" resultType="com.itsource.domain.Role">
+		select <include refid="base_colm_list"/> from t_role
+	</select>
+	<select id="getTotalCount" resultType="int" parameterType="com.itsource.query.RoleQuery" >
+		select count(*) from t_role r
+		<where>
+			<if test="q != null and q != ''">
+				and (r.sn like concat('%',#{q},'%')) or
+				(r.name like concat('%',#{q},'%'))
+			</if>
+		</where>
+	</select>
+	<select id="getLimitDatas" parameterType="com.itsource.query.RoleQuery" resultType="com.itsource.domain.Role">
+		select <include refid="base_colm_list"/> from t_role r
+		<where>
+			<if test="q != null and q != ''">
+				and (r.sn like concat('%',#{q},'%')) or
+				(r.name like concat('%',#{q},'%'))
+			</if>
+
+		</where>
+		limit #{start},#{rows};
+	</select>
+	<!--保存中间表-->
+	<insert id="saveRolePermission" parameterType="list">
+		insert into t_role_permission (role_id,permission_id)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.roleId},#{item.permissionId})
+
+		</foreach>
+	</insert>
+	<!--通过角色id删除中间表-->
+	<delete id="removeRolePermission" parameterType="long">
+		delete from  t_role_permission  where role_id =#{roleId}
+	</delete>
+	<!--* 根据员工id查角色-->
+	<select id="getRolesByEmpId" parameterType="long" resultType="com.itsource.domain.Role">
+		select a.* from t_role a left join t_employee_role b
+		on a.id=b.role_id
+		where b.employee_id=#{eid}
+
+	</select>
+</mapper> 
