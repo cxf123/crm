@@ -10,6 +10,13 @@
 	<insert id="save" parameterType="com.itsource.domain.Permission" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
 		insert into t_permission (`name`,sn,`resource`,`state`,menu_id) values (#{name},#{sn},#{resource},#{state},#{menu.id})
 	</insert>
+	<insert id="loadPermissionResource" parameterType="list">
+		insert t_permission (name,sn,resource,state,menu_id)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.name},#{item.sn},#{item.resource},#{item.state},#{item.menu.id})
+		</foreach>
+	</insert>
 	<update id="update" parameterType="com.itsource.domain.Permission">
 		update t_permission set `name`=#{name},sn=#{sn},`resource`=#{resource},`state`=#{state},menu_id=#{menu.id}
 	</update>
@@ -32,6 +39,22 @@
 	</select>
 	<select id="getLimitDatas" parameterType="com.itsource.query.PermissionQuery" resultMap="BaseMap">
 		SELECT a.*,m.id as mid,m.name as mname from t_permission a left join t_systemmenu m on a.menu_id = m.id
+	</select>
+	<select id="loadPermissionByRole" resultMap="permissionMap" parameterType="com.itsource.domain.Role">
+		select a.*,m.id as mid,m.name as mname from  t_permission a left join t_systemmenu m
+		on a.menu_id = m.id
+	</select>
+	<select id="findPermissionByLoginUserId" resultType="com.itsource.domain.Permission">
+		select a.* from t_permission a
+		left join t_role_permission b
+		 on a.id = b.permission_id
+		 left join t_role c
+		 on b.role_id = c.id
+		 left join t_employee_role d
+		 on c.id = d.role_id
+		 where d.employee_id=#{id}
+
+
 	</select>
 	<resultMap type="com.itsource.domain.Permission" id="permissionMap">
 		<id column="id" property="id"/>

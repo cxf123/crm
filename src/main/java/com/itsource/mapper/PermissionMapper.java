@@ -1,6 +1,9 @@
 package com.itsource.mapper;
 
+import com.aigou.crm.pojo.Role;
 import com.itsource.domain.Permission;
+
+import java.util.List;
 
 /**
  * @ProjectName:    crm 
@@ -12,4 +15,23 @@ import com.itsource.domain.Permission;
  * @Version:    1.0
  */
 public interface PermissionMapper extends BaseMapper<Permission>{
+    /**
+     * 根据角色查询权限
+     * @param role
+     * @return
+     */
+    List<Permission> loadPermissionByRole(Role role);
+
+    /**
+     * 批量保存权限，加载权限资源
+     * @param permissionList
+     */
+    void loadPermissionResource(List<Permission> permissionList);
+
+    /**
+     *根据员工id查询权限
+     * @param id
+     * @return
+     */
+    List<Permission> findPermissionByLoginUserId(Long id);
 }

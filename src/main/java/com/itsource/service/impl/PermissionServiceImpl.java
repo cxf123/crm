@@ -1,6 +1,7 @@
 package com.itsource.service.impl;
 
 import com.itsource.domain.Permission;
+import com.itsource.mapper.PermissionMapper;
 import com.itsource.service.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PermissionServiceImpl extends  BaseServiceImpl<Permission>  implements PermissionService {
     @Autowired
-    private PermissionService permissionService;
+    private PermissionMapper permissionMapper;
+
 
 }
