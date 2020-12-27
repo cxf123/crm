@@ -40,8 +40,12 @@
             <artifactId>mapper</artifactId>
             <version>4.1.4</version>
         </dependency>
-
-
+     <!-- 一键生成文档-->
+        <dependency>
+            <groupId>cn.smallbun.screw</groupId>
+            <artifactId>screw-core</artifactId>
+            <version>1.0.4</version>
+        </dependency>
         <!--JUnit-->
         <dependency>
             <groupId>junit</groupId>

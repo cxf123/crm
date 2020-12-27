@@ -1,7 +1,6 @@
 package com.itsource.service.impl;
 
 import com.itsource.domain.Department;
-import com.itsource.domain.Employee;
 import com.itsource.query.DepartmentQuery;
 import com.itsource.service.DepartmentService;
 import com.itsource.util.PageList;
@@ -31,17 +30,6 @@ public class DepartmentServiceImplTest {
     @Test
     public void testSave() throws Exception{
         Department department = new Department();
-        department.setSn("面包");
-        department.setName("面包");
-        department.setDirpath("1/3");
-        department.setState(0);
-        Employee employee = new Employee();
-        employee.setId(54L);
-        department.setManager(employee);
-        Department department1 = new Department();
-        department1.setId(55L);
-        department.setParent(department1);
-
 
         departmentService.add(department);
 
